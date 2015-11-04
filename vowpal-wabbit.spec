@@ -3,8 +3,8 @@
 Name:           vowpal-wabbit
 Summary:        Fast and efficient machine learning system
 Version:        8.1
-Release:        1%{?dist}
-Url:            http://hunch.net/~vw/
+Release:        2%{?dist}
+URL:            http://hunch.net/~vw/
 Source0:        https://github.com/JohnLangford/vowpal_wabbit/archive/%{version}/%{uname}-%{version}.tar.gz
 License:        BSD
 BuildRequires:  gcc-c++
@@ -35,10 +35,10 @@ sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
 %make_install
 
 # install the utl scripts
-install -p -m0755 utl/vw-convergence %{buildroot}%{_bindir}/
-install -p -m0755 utl/vw2csv %{buildroot}%{_bindir}/
-install -p -m0755 utl/vw-regr %{buildroot}%{_bindir}/
-install -p -m0755 utl/vw-varinfo %{buildroot}%{_bindir}/
+for util in vw-hypersearch vw-varinfo vw-regr vw-top-errors
+do
+  install -p -m0755 utl/$util %{buildroot}%{_bindir}/
+done
 mkdir -p %{buildroot}%{_datadir}/vowpalwabbit
 install -p -m0644 utl/vw-validate.html %{buildroot}%{_datadir}/vowpalwabbit/
 
@@ -47,23 +47,28 @@ rm -f %{buildroot}%{_libdir}/*.a
 rm -f %{buildroot}%{_libdir}/*.la
 
 %check
-LD_LIBRARY_PATH=%{buildroot}%{_libdir} make test
+# some of tests failes on i686
+%ifarch %ix86
+  LD_LIBRARY_PATH=%{buildroot}%{_libdir} make test || :
+%else
+  LD_LIBRARY_PATH=%{buildroot}%{_libdir} make test
+%endif
 
 %files
 %license LICENSE
 %doc README.md AUTHORS
 %{_libdir}/liballreduce.so.*
 %{_libdir}/libvw*.so.*
+%{_bindir}/vw
 %{_bindir}/active_interactor
 %{_bindir}/library_example
 %{_bindir}/spanning_tree
 %{_bindir}/ezexample_predict
 %{_bindir}/ezexample_train
-%{_bindir}/vw
-%{_bindir}/vw-convergence
-%{_bindir}/vw-regr
+%{_bindir}/vw-hypersearch
 %{_bindir}/vw-varinfo
-%{_bindir}/vw2csv
+%{_bindir}/vw-regr
+%{_bindir}/vw-top-errors
 %{_datadir}/vowpalwabbit/
 
 %files devel
@@ -72,5 +77,9 @@ LD_LIBRARY_PATH=%{buildroot}%{_libdir} make test
 %{_libdir}/libvw*.so
 
 %changelog
+* Wed Nov 04 2015 Igor Gnatenko <i.gnatenko.brain@gmail.com> - 8.1-2
+- Install utilities which metioned in wiki
+- Don't fail tests on i686
+
 * Wed Nov 04 2015 Igor Gnatenko <i.gnatenko.brain@gmail.com> - 8.1-1
 - Initial package

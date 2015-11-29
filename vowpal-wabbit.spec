@@ -2,8 +2,8 @@
 
 Name:           vowpal-wabbit
 Summary:        Fast and efficient machine learning system
-Version:        8.1
-Release:        2%{?dist}
+Version:        8.1.1
+Release:        1%{?dist}
 URL:            http://hunch.net/~vw/
 Source0:        https://github.com/JohnLangford/vowpal_wabbit/archive/%{version}/%{uname}-%{version}.tar.gz
 License:        BSD
@@ -12,8 +12,12 @@ BuildRequires:  boost-devel
 BuildRequires:  zlib-devel
 
 %description
-The Vowpal Wabbit (VW) project is a fast out-of-core learning system sponsored
-by Microsoft Research and (previously) Yahoo! Research.
+The Vowpal Wabbit (VW) project is a fast out-of-core learning system.
+
+Vowpal Wabbit is notable as an efficient scalable implementation of online
+machine learning and support for a number of machine learning reductions,
+importance weighting, and a selection of different loss functions and
+optimization algorithms.
 
 %package devel
 Summary:        Development files for %{name}
@@ -47,12 +51,16 @@ rm -f %{buildroot}%{_libdir}/*.a
 rm -f %{buildroot}%{_libdir}/*.la
 
 %check
-# some of tests failes on i686
+# some of tests fails on i686
 %ifarch %ix86
   LD_LIBRARY_PATH=%{buildroot}%{_libdir} make test || :
 %else
   LD_LIBRARY_PATH=%{buildroot}%{_libdir} make test
 %endif
+
+%post -p /sbin/ldconfig
+
+%postun -p /sbin/ldconfig
 
 %files
 %license LICENSE
@@ -77,6 +85,11 @@ rm -f %{buildroot}%{_libdir}/*.la
 %{_libdir}/libvw*.so
 
 %changelog
+* Sun Nov 29 2015 Igor Gnatenko <i.gnatenko.brain@gmail.com> - 8.1.1-1
+- Update to 8.1.1
+- Run ldconfig
+- Update description
+
 * Wed Nov 04 2015 Igor Gnatenko <i.gnatenko.brain@gmail.com> - 8.1-2
 - Install utilities which metioned in wiki
 - Don't fail tests on i686
